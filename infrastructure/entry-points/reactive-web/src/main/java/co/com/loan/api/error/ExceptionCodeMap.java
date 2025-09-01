@@ -20,6 +20,7 @@ public class ExceptionCodeMap {
     return switch (exceptionCode) {
       case INVALID_INPUT -> HttpStatus.BAD_REQUEST;
       case NOT_FOUND -> HttpStatus.NOT_FOUND;
+      case UNAUTHORIZED -> HttpStatus.UNAUTHORIZED;
       case UNEXPECTED_ERROR -> HttpStatus.INTERNAL_SERVER_ERROR;
     };
   }

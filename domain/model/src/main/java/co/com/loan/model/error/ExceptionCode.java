@@ -7,4 +7,5 @@ public enum ExceptionCode {
   INVALID_INPUT,
   NOT_FOUND,
   UNEXPECTED_ERROR,
+  UNAUTHORIZED
 }

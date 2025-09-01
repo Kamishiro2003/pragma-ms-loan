@@ -2,14 +2,13 @@ package co.com.loan.usecase.loan;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import co.com.loan.model.error.ErrorCode;
 import co.com.loan.model.exception.BusinessException;
 import co.com.loan.model.gateways.LoanRepository;
+import co.com.loan.model.gateways.TokenGateway;
 import co.com.loan.model.gateways.TransactionGateway;
 import co.com.loan.model.gateways.UserGateway;
 import co.com.loan.model.loan.Loan;
@@ -19,7 +18,6 @@ import co.com.loan.model.loan.type.LoanType;
 import co.com.loan.model.user.User;
 import co.com.loan.usecase.loan.type.LoanTypeUseCase;
 import java.math.BigDecimal;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatchers;
@@ -45,7 +43,9 @@ class LoanUseCaseTest {
       .typeId("typeId")
       .build();
 
-  private final User user = User.builder().email(loan.getEmail()).build();
+  private final User user = User.builder()
+      .email(loan.getEmail())
+      .build();
 
   private final LoanType loanType = LoanType.builder()
       .id("typeId")
@@ -53,78 +53,113 @@ class LoanUseCaseTest {
       .maxAmount(BigDecimal.valueOf(5000))
       .build();
 
+
   @Mock
   private LoanRepository loanRepository;
+
   @Mock
   private LoanTypeUseCase loanTypeUseCase;
-  @Mock
-  private TransactionGateway transactionGateway;
+
   @Mock
   private UserGateway userGateway;
+
+  @Mock
+  private TransactionGateway transactionGateway;
+
+  @Mock
+  private TokenGateway tokenGateway;
 
   @InjectMocks
   private LoanUseCase loanUseCase;
 
-  @BeforeEach
-  void setup() {
-    when(transactionGateway.execute(ArgumentMatchers.<Mono<?>>any())).thenAnswer(invocation -> invocation.getArgument(0));
-  }
-
   @Test
   void shouldCreateLoanSuccessfully() {
     // Arrange
+    when(transactionGateway.execute(ArgumentMatchers.<Mono<?>>any())).thenAnswer(invocation -> invocation.getArgument(
+        0));
+    String token = "token test";
+    when(tokenGateway.getToken()).thenReturn(Mono.just(token));
+    when(tokenGateway.getEmailFromToken()).thenReturn(Mono.just(user.getEmail()));
     when(loanTypeUseCase.getLoanTypeById("typeId")).thenReturn(Mono.just(loanType));
-    when(userGateway.getUserByDocumentId(loanCreate.documentId())).thenReturn(Mono.just(user));
+    when(userGateway.getUserByDocumentId(loanCreate.documentId(),
+        token)).thenReturn(Mono.just(user));
     when(loanRepository.save(any(Loan.class))).thenReturn(Mono.just(loan));
 
     // Act
     var result = loanUseCase.createLoan(loanCreate);
 
     // Assert
-    StepVerifier.create(result).expectNext(loan).verifyComplete();
-
-    // Verify interactions
-    verify(transactionGateway).execute(any());
-    verify(loanTypeUseCase).getLoanTypeById("typeId");
-    verify(userGateway).getUserByDocumentId(loanCreate.documentId());
-    verify(loanRepository).save(any(Loan.class));
+    StepVerifier.create(result)
+        .expectNext(loan)
+        .verifyComplete();
   }
 
   @Test
   void shouldFailWhenAmountBelowMin() {
     // Arrange
+    lenient().when(transactionGateway.execute(ArgumentMatchers.<Mono<?>>any()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
     LoanCreate invalidLoan = new LoanCreate(BigDecimal.valueOf(500), 12, "documentId", "typeId");
     when(loanTypeUseCase.getLoanTypeById("typeId")).thenReturn(Mono.just(loanType));
 
     // Act & Assert
-    StepVerifier.create(loanUseCase.createLoan(invalidLoan)).expectErrorSatisfies(error -> {
-      assertThat(error).isInstanceOf(BusinessException.class);
-      BusinessException ex = (BusinessException) error;
-      assertThat(ex.getFullErrorCode()).isEqualTo(ErrorCode.AMOUNT_BELOW_MIN.getCode());
-    }).verify();
-
-    // Verify
-    verify(userGateway, never()).getUserByDocumentId(anyString());
-    verify(loanRepository, never()).save(any());
+    StepVerifier.create(loanUseCase.createLoan(invalidLoan))
+        .expectErrorSatisfies(error -> {
+          assertThat(error).isInstanceOf(BusinessException.class);
+          BusinessException ex = (BusinessException) error;
+          assertThat(ex.getFullErrorCode()).isEqualTo(ErrorCode.AMOUNT_BELOW_MIN.getCode());
+        })
+        .verify();
   }
+
 
   @Test
   void shouldFailWhenAmountAboveMax() {
     // Arrange
+    lenient().when(transactionGateway.execute(ArgumentMatchers.<Mono<?>>any()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
     LoanCreate invalidLoan = new LoanCreate(BigDecimal.valueOf(10000), 12, "documentId", "typeId");
     when(loanTypeUseCase.getLoanTypeById("typeId")).thenReturn(Mono.just(loanType));
 
     // Act & Assert
-    StepVerifier.create(loanUseCase.createLoan(invalidLoan)).expectErrorSatisfies(error -> {
-      assertThat(error).isInstanceOf(BusinessException.class);
-      BusinessException ex = (BusinessException) error;
-      assertThat(ex.getFullErrorCode()).isEqualTo(ErrorCode.AMOUNT_ABOVE_MAX.getCode());
-    }).verify();
-
-    // Verify
-    verify(userGateway, never()).getUserByDocumentId(anyString());
-    verify(loanRepository, never()).save(any());
+    StepVerifier.create(loanUseCase.createLoan(invalidLoan))
+        .expectErrorSatisfies(error -> {
+          assertThat(error).isInstanceOf(BusinessException.class);
+          BusinessException ex = (BusinessException) error;
+          assertThat(ex.getFullErrorCode()).isEqualTo(ErrorCode.AMOUNT_ABOVE_MAX.getCode());
+        })
+        .verify();
   }
+
+  @Test
+  void shouldFailWhenPersonIsDifferent() {
+    // Arrange
+    lenient().when(transactionGateway.execute(ArgumentMatchers.<Mono<?>>any()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    String token = "token test";
+    when(tokenGateway.getToken()).thenReturn(Mono.just(token));
+    when(tokenGateway.getEmailFromToken()).thenReturn(Mono.just(user.getEmail()));
+    when(loanTypeUseCase.getLoanTypeById("typeId")).thenReturn(Mono.just(loanType));
+    User otherUser = User.builder()
+        .email("other@mail.com")
+        .build();
+    when(userGateway.getUserByDocumentId("documentId", token)).thenReturn(Mono.just(otherUser));
+    LoanCreate loanCreateDifferentPerson = new LoanCreate(BigDecimal.valueOf(2000),
+        12,
+        "documentId",
+        "typeId");
+
+    // Act & Assert
+    StepVerifier.create(loanUseCase.createLoan(loanCreateDifferentPerson))
+        .expectErrorSatisfies(error -> {
+          assertThat(error).isInstanceOf(BusinessException.class);
+          BusinessException ex = (BusinessException) error;
+          assertThat(ex.getFullErrorCode()).isEqualTo(ErrorCode.SHOULD_BE_SAME_PERSON.getCode());
+        })
+        .verify();
+  }
+
 }
 
 

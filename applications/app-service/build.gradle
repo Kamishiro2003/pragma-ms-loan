@@ -1,6 +1,7 @@
 apply plugin: 'org.springframework.boot'
 
 dependencies {
+	implementation project(':security')
 	implementation project(':reactive-web')
 	implementation project(':r2dbc-transaction')
 	implementation project(':rest-consumer')
