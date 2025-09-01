@@ -7,9 +7,6 @@ import lombok.Getter;
  */
 @Getter
 public enum ErrorCode {
-  USER_SERVICE_NOT_AVAILABLE("USER-SERVICE-NOT-AVAILABLE",
-      ExceptionCode.UNEXPECTED_ERROR,
-      "El servicio de usuario no se encuentra disponible"),
   LOAN_TYPE_NOT_FOUND("LOAN-TYPE-NOT-FOUND",
       ExceptionCode.NOT_FOUND,
       "No se encontró el tipo de préstamo con id: "),
@@ -25,6 +22,9 @@ public enum ErrorCode {
   AMOUNT_ABOVE_MAX("AMOUNT-ABOVE-MAX",
       ExceptionCode.INVALID_INPUT,
       "El monto ingresado supera el máximo permitido"),
+  SHOULD_BE_SAME_PERSON("SHOULD_BE_SAME_PERSON",
+      ExceptionCode.INVALID_INPUT,
+      "Solo se pueden crear solicitudes personales"),
   ;
 
   private final String code;

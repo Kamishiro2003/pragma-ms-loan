@@ -7,6 +7,11 @@ spring:
     add-properties: false
   profiles:
     include: null
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          secret: ${JWT_SECRET}
   flyway:
     url: jdbc:postgresql://${R2DBC_HOST}:${R2DBC_PORT}/${R2DBC_DATABASE}
     user: ${R2DBC_USERNAME}

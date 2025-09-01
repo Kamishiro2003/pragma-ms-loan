@@ -8,6 +8,12 @@ import reactor.core.publisher.Mono;
  */
 public interface LoanTypeRepository {
 
+  /**
+   * Retrieves a LoanType by its ID.
+   *
+   * @param id the ID of the loan type
+   * @return a Mono emitting the LoanType if found, or empty if not
+   */
   Mono<LoanType> findById(String id);
 
 }

@@ -16,10 +16,22 @@ public class ObjectNotFoundException extends ApplicationException {
     super(errorCode);
   }
 
+  /**
+   * Constructs a new ObjectNotFoundException with the specified error code and string value.
+   *
+   * @param errorCode the error code associated with this exception
+   * @param value     the string value related to the missing object
+   */
   public ObjectNotFoundException(ErrorCode errorCode, String value) {
     super(errorCode, value);
   }
 
+  /**
+   * Constructs a new ObjectNotFoundException with the specified error code and integer value.
+   *
+   * @param errorCode the error code associated with this exception
+   * @param value     the integer value related to the missing object
+   */
   public ObjectNotFoundException(ErrorCode errorCode, int value) {
     super(errorCode, value);
   }
