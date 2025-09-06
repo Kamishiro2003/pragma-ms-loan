@@ -7,25 +7,30 @@ import lombok.Getter;
  */
 @Getter
 public enum ErrorCode {
-  LOAN_TYPE_NOT_FOUND("LOAN-TYPE-NOT-FOUND",
-      ExceptionCode.NOT_FOUND,
+  LOAN_TYPE_NOT_FOUND(
+      "LOAN-TYPE-NOT-FOUND", ExceptionCode.NOT_FOUND,
       "No se encontró el tipo de préstamo con id: "),
-  STATUS_NOT_FOUND("STATUS-NOT-FOUND",
-      ExceptionCode.NOT_FOUND,
+  STATUS_NOT_FOUND(
+      "STATUS-NOT-FOUND", ExceptionCode.NOT_FOUND,
       "No se encontró el estado con id: "),
-  USER_NOT_FOUND_BY_DOCUMENT_ID("USER-NOT-FOUND-BY-DOCUMENT-ID",
-      ExceptionCode.NOT_FOUND,
+  USER_NOT_FOUND_BY_DOCUMENT_ID(
+      "USER-NOT-FOUND-BY-DOCUMENT-ID", ExceptionCode.NOT_FOUND,
       "No se encontró el usuario con documento de identidad: "),
-  AMOUNT_BELOW_MIN("AMOUNT-BELOW-MIN",
-      ExceptionCode.INVALID_INPUT,
+  AMOUNT_BELOW_MIN(
+      "AMOUNT-BELOW-MIN", ExceptionCode.INVALID_INPUT,
       "El monto ingresado está por debajo del mínimo permitido"),
-  AMOUNT_ABOVE_MAX("AMOUNT-ABOVE-MAX",
-      ExceptionCode.INVALID_INPUT,
+  AMOUNT_ABOVE_MAX(
+      "AMOUNT-ABOVE-MAX", ExceptionCode.INVALID_INPUT,
       "El monto ingresado supera el máximo permitido"),
-  SHOULD_BE_SAME_PERSON("SHOULD_BE_SAME_PERSON",
-      ExceptionCode.INVALID_INPUT,
+  SHOULD_BE_SAME_PERSON(
+      "SHOULD-BE-SAME-PERSON", ExceptionCode.INVALID_INPUT,
       "Solo se pueden crear solicitudes personales"),
-  ;
+  STATUS_IS_REQUIRED(
+      "STATUS-IS-REQUIRED", ExceptionCode.INVALID_INPUT,
+      "El estado es requerido como parámetro"),
+  FIND_LOANS_BY_STATUS_PARAM_INVALID(
+      "FIND-LOANS-BY-STATUS-PARAM-INVALID",
+      ExceptionCode.INVALID_INPUT, "Formato invalido para status, page o size");
 
   private final String code;
   private final ExceptionCode exceptionCode;

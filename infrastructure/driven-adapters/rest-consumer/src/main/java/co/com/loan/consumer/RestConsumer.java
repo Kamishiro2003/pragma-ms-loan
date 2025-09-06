@@ -2,6 +2,7 @@ package co.com.loan.consumer;
 
 import co.com.loan.model.error.ErrorCode;
 import co.com.loan.model.exception.ObjectNotFoundException;
+import co.com.loan.model.gateways.TokenGateway;
 import co.com.loan.model.gateways.UserGateway;
 import co.com.loan.model.user.User;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
@@ -18,25 +19,53 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class RestConsumer implements UserGateway {
 
+  private final TokenGateway tokenGateway;
   private final WebClient client;
   private final UserMapper mapper;
 
   @Override
   @CircuitBreaker(name = "userService")
-  public Mono<User> getUserByDocumentId(String documentId, String token) {
-    return client.get()
-        .uri(uriBuilder -> uriBuilder.path("/api/v1/usuarios")
-            .queryParam("documentId", documentId)
-            .build())
-        .header(HttpHeaders.AUTHORIZATION, "bearer " + token)
-        .retrieve()
-        .bodyToMono(UserResponse.class)
-        .map(mapper::toDomain)
-        .onErrorResume(WebClientResponseException.NotFound.class, ex -> {
-          log.warn("User not found with documentId={}", documentId);
-          return Mono.error(new ObjectNotFoundException(ErrorCode.USER_NOT_FOUND_BY_DOCUMENT_ID,
-              documentId));
-        });
+  public Mono<User> getUserByDocumentId(String documentId) {
+    return tokenGateway
+        .getToken()
+        .flatMap(token -> client
+            .get()
+            .uri(uriBuilder -> uriBuilder
+                .path("/api/v1/usuarios")
+                .queryParam("documentId", documentId)
+                .build())
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+            .retrieve()
+            .bodyToMono(UserResponse.class)
+            .map(mapper::toDomain)
+            .onErrorResume(
+                WebClientResponseException.NotFound.class, ex -> {
+                  log.warn("User not found with documentId={}", documentId);
+                  return Mono.error(
+                      new ObjectNotFoundException(
+                          ErrorCode.USER_NOT_FOUND_BY_DOCUMENT_ID, documentId));
+                }));
+  }
+
+  @Override
+  public Mono<User> getUserByEmail(String email) {
+    return tokenGateway
+        .getToken()
+        .flatMap(token -> client
+            .get()
+            .uri(uriBuilder -> uriBuilder
+                .path("/api/v1/usuarios/email")
+                .queryParam("email", email)
+                .build())
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+            .retrieve()
+            .bodyToMono(UserResponse.class)
+            .map(mapper::toDomain)
+            .onErrorResume(
+                WebClientResponseException.NotFound.class, ex -> {
+                  log.warn("User not found with email={}", email);
+                  return Mono.empty();
+                }));
   }
 
 }

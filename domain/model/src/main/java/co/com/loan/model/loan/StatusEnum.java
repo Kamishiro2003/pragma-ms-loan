@@ -11,9 +11,9 @@ import reactor.core.publisher.Mono;
  */
 @Getter
 public enum StatusEnum {
-  PENDING(1,"Pendiente de revisión"),
-  REJECTED(2,"Rechazadas"),
-  MANUAL_REVIEW(3,"Revisión manual");
+  PENDING(1, "Pendiente de revisión"),
+  REJECTED(2, "Rechazadas"),
+  MANUAL_REVIEW(3, "Revisión manual");
 
   private final int id;
   private final String displayName;
@@ -24,10 +24,20 @@ public enum StatusEnum {
   }
 
   public static Mono<StatusEnum> fromId(int id) {
-    return Mono.justOrEmpty(
-        Arrays.stream(values())
+    return Mono
+        .justOrEmpty(Arrays
+            .stream(values())
             .filter(s -> s.id == id)
-            .findFirst()
-    ).switchIfEmpty(Mono.error(new ObjectNotFoundException(ErrorCode.STATUS_NOT_FOUND, id)));
+            .findFirst())
+        .switchIfEmpty(Mono.error(new ObjectNotFoundException(ErrorCode.STATUS_NOT_FOUND, id)));
   }
+
+  public static StatusEnum getStatusEnum(int id) {
+    return Arrays
+        .stream(values())
+        .filter(s -> s.id == id)
+        .findFirst()
+        .orElseThrow(() -> new ObjectNotFoundException(ErrorCode.STATUS_NOT_FOUND, id));
+  }
+
 }
