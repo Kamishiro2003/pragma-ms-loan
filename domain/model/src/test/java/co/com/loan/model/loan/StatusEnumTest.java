@@ -15,7 +15,10 @@ class StatusEnumTest {
     int id = 1;
 
     // Act & Assert
-    StepVerifier.create(StatusEnum.fromId(id)).expectNext(StatusEnum.PENDING).verifyComplete();
+    StepVerifier
+        .create(StatusEnum.fromId(id))
+        .expectNext(StatusEnum.PENDING)
+        .verifyComplete();
   }
 
   @Test
@@ -24,7 +27,10 @@ class StatusEnumTest {
     int id = 2;
 
     // Act & Assert
-    StepVerifier.create(StatusEnum.fromId(id)).expectNext(StatusEnum.REJECTED).verifyComplete();
+    StepVerifier
+        .create(StatusEnum.fromId(id))
+        .expectNext(StatusEnum.REJECTED)
+        .verifyComplete();
   }
 
   @Test
@@ -33,7 +39,8 @@ class StatusEnumTest {
     int id = 3;
 
     // Act & Assert
-    StepVerifier.create(StatusEnum.fromId(id))
+    StepVerifier
+        .create(StatusEnum.fromId(id))
         .expectNext(StatusEnum.MANUAL_REVIEW)
         .verifyComplete();
   }
@@ -44,8 +51,10 @@ class StatusEnumTest {
     int id = 99;
 
     // Act & Assert
-    StepVerifier.create(StatusEnum.fromId(id))
-        .expectErrorSatisfies(error -> assertThat(error).isInstanceOf(ObjectNotFoundException.class))
+    StepVerifier
+        .create(StatusEnum.fromId(id))
+        .expectErrorSatisfies(
+            error -> assertThat(error).isInstanceOf(ObjectNotFoundException.class))
         .verify();
   }
 
@@ -71,5 +80,17 @@ class StatusEnumTest {
 
     // Assert
     assertEquals("Rechazadas", displayName);
+  }
+
+  @Test
+  void shouldReturnCorrectDisplayName() {
+    // Arrange
+    StatusEnum status = StatusEnum.PENDING;
+
+    // Act
+    StatusEnum displayName = StatusEnum.getStatusEnum(status.getId());
+
+    // Assert
+    assertEquals(status.getDisplayName(), displayName.getDisplayName());
   }
 }

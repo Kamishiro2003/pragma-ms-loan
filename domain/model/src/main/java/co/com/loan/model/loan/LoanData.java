@@ -1,4 +1,4 @@
-package co.com.loan.usecase.loan;
+package co.com.loan.model.loan;
 
 import co.com.loan.model.loan.type.LoanType;
 import co.com.loan.model.user.User;

@@ -12,8 +12,9 @@ public interface UserGateway {
    * Retrieves a user by their document ID, using the provided authentication token.
    *
    * @param documentId the document ID of the user
-   * @param token      the authentication token for authorization
    * @return a Mono emitting the User if found, or an error if not
    */
-  Mono<User> getUserByDocumentId(String documentId, String token);
+  Mono<User> getUserByDocumentId(String documentId);
+
+  Mono<User> getUserByEmail(String email);
 }

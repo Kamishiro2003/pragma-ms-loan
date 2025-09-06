@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableReactiveMethodSecurity;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -34,17 +35,26 @@ public class SecurityConfig {
   @Bean
   public SecurityWebFilterChain filterChain(ServerHttpSecurity http,
       ReactiveJwtAuthenticationConverterAdapter jwtAuthConverter) {
-    return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
-        .authorizeExchange(exchange -> exchange.pathMatchers("/api/v1/solicitud")
+    return http
+        .csrf(ServerHttpSecurity.CsrfSpec::disable)
+        .authorizeExchange(exchange -> exchange
+            .pathMatchers(HttpMethod.POST, "/api/v1/solicitud")
             .hasAuthority(RoleEnum.CLIENT.getName())
+            .pathMatchers(HttpMethod.GET, "/api/v1/solicitud")
+            .hasAuthority(RoleEnum.ADVISER.getName())
+            .pathMatchers(
+                "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
+                "/webjars/swagger-ui/**")
+            .permitAll()
             .anyExchange()
             .authenticated())
-        .oauth2ResourceServer(oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(
-            jwtAuthConverter)))
+        .oauth2ResourceServer(
+            oauth -> oauth.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthConverter)))
         .httpBasic(ServerHttpSecurity.HttpBasicSpec::disable)
         .formLogin(ServerHttpSecurity.FormLoginSpec::disable)
         .logout(ServerHttpSecurity.LogoutSpec::disable)
-        .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(new BearerTokenServerAuthenticationEntryPoint())
+        .exceptionHandling(exceptions -> exceptions
+            .authenticationEntryPoint(new BearerTokenServerAuthenticationEntryPoint())
             .accessDeniedHandler(new BearerTokenServerAccessDeniedHandler()))
         .build();
   }
@@ -54,7 +64,8 @@ public class SecurityConfig {
       @Value("${spring.security.oauth2.resourceserver.jwt.secret}") String secret) {
     byte[] keyBytes = Decoders.BASE64URL.decode(secret);
     SecretKey key = Keys.hmacShaKeyFor(keyBytes);
-    return NimbusReactiveJwtDecoder.withSecretKey(key)
+    return NimbusReactiveJwtDecoder
+        .withSecretKey(key)
         .build();
   }
 
@@ -63,10 +74,12 @@ public class SecurityConfig {
   public ReactiveJwtAuthenticationConverterAdapter jwtAuthenticationConverter() {
     JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
     converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-      Object rolesObj = jwt.getClaims()
+      Object rolesObj = jwt
+          .getClaims()
           .get("roles");
       if (rolesObj instanceof Collection<?> roles) {
-        return roles.stream()
+        return roles
+            .stream()
             .filter(Map.class::isInstance)
             .map(r -> ((Map<?, ?>) r).get("authority"))
             .filter(Objects::nonNull)
