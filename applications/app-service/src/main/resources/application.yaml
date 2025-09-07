@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8080
 spring:
   application:
     name: ms-loan
@@ -13,9 +13,9 @@ spring:
         jwt:
           secret: ${JWT_SECRET}
   flyway:
-    url: jdbc:postgresql://${R2DBC_HOST}:${R2DBC_PORT}/${R2DBC_DATABASE}
-    user: ${R2DBC_USERNAME}
-    password: ${R2DBC_PASSWORD}
+    url: jdbc:postgresql://${R2DBC_LOAN_HOST}:${R2DBC_LOAN_PORT}/${R2DBC_LOAN_DATABASE}
+    user: ${R2DBC_LOAN_USERNAME}
+    password: ${R2DBC_LOAN_PASSWORD}
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: true
@@ -37,12 +37,12 @@ management:
       enabled: true
 adapters:
   r2dbc:
-    host: ${R2DBC_HOST}
-    port: ${R2DBC_PORT}
-    database: ${R2DBC_DATABASE}
-    schema: ${R2DBC_SCHEMA}
-    username: ${R2DBC_USERNAME}
-    password: ${R2DBC_PASSWORD}
+    host: ${R2DBC_LOAN_HOST}
+    port: ${R2DBC_LOAN_PORT}
+    database: ${R2DBC_LOAN_DATABASE}
+    schema: ${R2DBC_LOAN_SCHEMA}
+    username: ${R2DBC_LOAN_USERNAME}
+    password: ${R2DBC_LOAN_PASSWORD}
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS}
 adapter:
