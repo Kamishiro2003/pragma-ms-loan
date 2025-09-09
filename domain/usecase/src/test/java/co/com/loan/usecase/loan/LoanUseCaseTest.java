@@ -3,12 +3,17 @@ package co.com.loan.usecase.loan;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import co.com.loan.model.error.ErrorCode;
 import co.com.loan.model.exception.BusinessException;
+import co.com.loan.model.exception.ObjectNotFoundException;
 import co.com.loan.model.gateways.LoanRepository;
+import co.com.loan.model.gateways.MessageBrokerGateway;
 import co.com.loan.model.gateways.TokenGateway;
 import co.com.loan.model.gateways.TransactionGateway;
 import co.com.loan.model.gateways.UserGateway;
@@ -17,6 +22,7 @@ import co.com.loan.model.loan.LoanCreate;
 import co.com.loan.model.loan.LoanResponse;
 import co.com.loan.model.loan.StatusEnum;
 import co.com.loan.model.loan.type.LoanType;
+import co.com.loan.model.message.MessageBody;
 import co.com.loan.model.page.PageCommand;
 import co.com.loan.model.page.PageResponse;
 import co.com.loan.model.user.User;
@@ -41,6 +47,7 @@ class LoanUseCaseTest {
 
   private final Loan loan = Loan
       .builder()
+      .id("idLoan")
       .amount(BigDecimal.valueOf(2222))
       .term(12)
       .email("git@mail.com")
@@ -76,6 +83,9 @@ class LoanUseCaseTest {
 
   @Mock
   private TokenGateway tokenGateway;
+
+  @Mock
+  private MessageBrokerGateway messageBrokerGateway;
 
   @InjectMocks
   private LoanUseCase loanUseCase;
@@ -223,6 +233,54 @@ class LoanUseCaseTest {
           assertThat(page.getTotalPages()).isZero();
         })
         .verifyComplete();
+  }
+
+  @Test
+  void shouldUpdateLoanStatusAndSendMessage() {
+    // Arrange
+    Loan updatedLoan = loan
+        .toBuilder()
+        .idStatus(StatusEnum.APPROVED.getId())
+        .build();
+
+    when(loanRepository.findById("idLoan")).thenReturn(Mono.just(loan));
+    when(loanRepository.save(any(Loan.class))).thenReturn(Mono.just(updatedLoan));
+    when(messageBrokerGateway.sendMessage(any(MessageBody.class))).thenReturn(Mono.empty());
+
+    // Act
+    Mono<Void> result = loanUseCase.updateLoanStatusById("idLoan", StatusEnum.APPROVED.getId());
+
+    // Assert
+    StepVerifier
+        .create(result)
+        .verifyComplete();
+
+    verify(loanRepository).findById("idLoan");
+    verify(loanRepository).save(
+        argThat(saved -> saved.getIdStatus() == StatusEnum.APPROVED.getId()));
+    verify(messageBrokerGateway).sendMessage(any(MessageBody.class));
+  }
+
+
+  @Test
+  void shouldThrowWhenLoanNotFound() {
+    // Arrange
+    String idLoan = "nonExistingId";
+    when(loanRepository.findById(idLoan)).thenReturn(Mono.empty());
+
+    // Act
+    Mono<Void> result = loanUseCase.updateLoanStatusById(idLoan, StatusEnum.APPROVED.getId());
+
+    // Assert
+    StepVerifier
+        .create(result)
+        .expectErrorSatisfies(error -> assertThat(error)
+            .isInstanceOf(ObjectNotFoundException.class)
+            .hasMessageContaining(ErrorCode.LOAN_NOT_FOUND.getMessage() + idLoan))
+        .verify();
+
+    verify(loanRepository).findById(idLoan);
+    verifyNoInteractions(messageBrokerGateway);
   }
 }
 

@@ -25,6 +25,18 @@ public class LoanReactiveRepositoryAdapter extends
   }
 
   @Override
+  public Mono<Loan> findById(String id) {
+    log.debug("Trying to find a Loan with id: {}", id);
+    return super
+        .findById(id)
+        .doOnNext(loan -> log.info("Loan with id {} was found", id))
+        .switchIfEmpty(Mono.defer(() -> {
+          log.debug("Loan with id {} was not found", id);
+          return Mono.empty();
+        }));
+  }
+
+  @Override
   public Mono<Loan> save(Loan loan) {
     log.debug("Saving loan: {}", loan);
     return super

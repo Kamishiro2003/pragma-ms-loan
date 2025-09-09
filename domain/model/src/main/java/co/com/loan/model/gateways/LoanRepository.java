@@ -18,6 +18,14 @@ public interface LoanRepository {
    */
   Mono<Loan> save(Loan loan);
 
+  /**
+   * Finds a loan by its unique identifier.
+   *
+   * @param idLoan the loan ID to search for
+   * @return a Mono containing the found loan, or empty if not found
+   */
+  Mono<Loan> findById(String idLoan);
+
   Flux<Loan> findAllByIdStatus(int idStatus, PageCommand command);
 
   Mono<Integer> getCountByIdStatus(int idStatus);

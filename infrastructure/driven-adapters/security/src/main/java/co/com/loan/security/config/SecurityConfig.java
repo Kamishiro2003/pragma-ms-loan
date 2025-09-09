@@ -32,15 +32,19 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 @EnableReactiveMethodSecurity
 public class SecurityConfig {
 
+  private static final String PATH = "/api/v1/solicitud";
+
   @Bean
   public SecurityWebFilterChain filterChain(ServerHttpSecurity http,
       ReactiveJwtAuthenticationConverterAdapter jwtAuthConverter) {
     return http
         .csrf(ServerHttpSecurity.CsrfSpec::disable)
         .authorizeExchange(exchange -> exchange
-            .pathMatchers(HttpMethod.POST, "/api/v1/solicitud")
+            .pathMatchers(HttpMethod.POST, PATH)
             .hasAuthority(RoleEnum.CLIENT.getName())
-            .pathMatchers(HttpMethod.GET, "/api/v1/solicitud")
+            .pathMatchers(HttpMethod.GET, PATH)
+            .hasAuthority(RoleEnum.ADVISER.getName())
+            .pathMatchers(HttpMethod.PUT, PATH)
             .hasAuthority(RoleEnum.ADVISER.getName())
             .pathMatchers(
                 "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**",
