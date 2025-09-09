@@ -2,6 +2,7 @@ package co.com.loan.api.router;
 
 import static org.springframework.web.reactive.function.server.RequestPredicates.GET;
 import static org.springframework.web.reactive.function.server.RequestPredicates.POST;
+import static org.springframework.web.reactive.function.server.RequestPredicates.PUT;
 import static org.springframework.web.reactive.function.server.RouterFunctions.route;
 
 import co.com.loan.api.error.ErrorResponse;
@@ -95,11 +96,44 @@ public class LoanRouterRest {
               )
           )}
       )
+  ), @RouterOperation(method = RequestMethod.PUT,
+      beanClass = LoanHandler.class,
+      path = PATH,
+      beanMethod = "listenUpdateLoanStatusById",
+      operation = @Operation(operationId = "updateLoanStatusById",
+          summary = "Actualiza el estado de una solicitud",
+          description = "Permite actualizar el estado de un préstamo por su idLoan",
+          parameters = {@Parameter(name = "idLoan",
+              in = ParameterIn.QUERY,
+              required = true,
+              description = "ID de la solicitud a actualizar",
+              schema = @Schema(type = "string")
+          ), @Parameter(name = "idStatus",
+              in = ParameterIn.QUERY,
+              required = true,
+              description = "Nuevo estado de la solicitud",
+              schema = @Schema(type = "integer")
+          )},
+          responses = {
+              @ApiResponse(responseCode = "204", description = "Estado actualizado correctamente"
+              ), @ApiResponse(responseCode = "400",
+              description = "Parámetros inválidos o faltantes",
+              content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class)
+              )
+          ), @ApiResponse(responseCode = "404",
+              description = "Solicitud no encontrada",
+              content = @Content(mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class)
+              )
+          )}
+      )
   )}
   )
   public RouterFunction<ServerResponse> loanRouterFunction() {
     return route(POST(PATH), loanHandler::listenCreateLoan)
         .andRoute(GET(PATH), loanHandler::listenFindLoansByIdStatus)
+        .andRoute(PUT(PATH), loanHandler::listenUpdateLoanStatusById)
         .filter(globalErrorWebFilter);
   }
 }

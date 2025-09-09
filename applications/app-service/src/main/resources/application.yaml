@@ -1,8 +1,8 @@
 server:
-  port: 8080
+  port: 8081
 spring:
   application:
-    name: ms-loan
+    name: "ms-loan"
   devtools:
     add-properties: false
   profiles:
@@ -11,44 +11,47 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          secret: ${JWT_SECRET}
+          secret: "${JWT_SECRET}"
   flyway:
-    url: jdbc:postgresql://${R2DBC_LOAN_HOST}:${R2DBC_LOAN_PORT}/${R2DBC_LOAN_DATABASE}
-    user: ${R2DBC_LOAN_USERNAME}
-    password: ${R2DBC_LOAN_PASSWORD}
+    url: "jdbc:postgresql://${R2DBC_LOAN_HOST}:${R2DBC_LOAN_PORT}/${R2DBC_LOAN_DATABASE}"
+    user: "${R2DBC_LOAN_USERNAME}"
+    password: "${R2DBC_LOAN_PASSWORD}"
     enabled: true
-    locations: classpath:db/migration
+    locations: "classpath:db/migration"
     baseline-on-migrate: true
     validate-on-migrate: true
 management:
   endpoints:
     web:
       exposure:
-        include: health,prometheus
+        include: "health,prometheus"
   endpoint:
     health:
       probes:
         enabled: true
   metrics:
     tags:
-      application: ${spring.application.name}
+      application: "${spring.application.name}"
   health:
     circuitbreakers:
       enabled: true
 adapters:
   r2dbc:
-    host: ${R2DBC_LOAN_HOST}
-    port: ${R2DBC_LOAN_PORT}
-    database: ${R2DBC_LOAN_DATABASE}
-    schema: ${R2DBC_LOAN_SCHEMA}
-    username: ${R2DBC_LOAN_USERNAME}
-    password: ${R2DBC_LOAN_PASSWORD}
+    host: "${R2DBC_LOAN_HOST}"
+    port: "${R2DBC_LOAN_PORT}"
+    database: "${R2DBC_LOAN_DATABASE}"
+    schema: "${R2DBC_LOAN_SCHEMA}"
+    username: "${R2DBC_LOAN_USERNAME}"
+    password: "${R2DBC_LOAN_PASSWORD}"
 cors:
-  allowed-origins: ${CORS_ALLOWED_ORIGINS}
+  allowed-origins: "${CORS_ALLOWED_ORIGINS}"
 adapter:
   restconsumer:
     timeout: 5000
-    url: ${URL_REST_CONSUMER}
+    url: "${URL_REST_CONSUMER}"
+  sqs:
+    region: "${SQS_REGION}"
+    queueUrl: "${SQS_QUEUE_URL}"
 resilience4j:
   circuitbreaker:
     instances:
@@ -56,17 +59,17 @@ resilience4j:
         registerHealthIndicator: true
         failureRateThreshold: 50
         slowCallRateThreshold: 50
-        slowCallDurationThreshold: 2s
+        slowCallDurationThreshold: "2s"
         permittedNumberOfCallsInHalfOpenState: 3
         slidingWindowSize: 10
         minimumNumberOfCalls: 10
-        waitDurationInOpenState: 10s
+        waitDurationInOpenState: "10s"
       testPost:
         registerHealthIndicator: true
         failureRateThreshold: 50
         slowCallRateThreshold: 50
-        slowCallDurationThreshold: 2s
+        slowCallDurationThreshold: "2s"
         permittedNumberOfCallsInHalfOpenState: 3
         slidingWindowSize: 10
         minimumNumberOfCalls: 10
-        waitDurationInOpenState: 10s
+        waitDurationInOpenState: "10s"

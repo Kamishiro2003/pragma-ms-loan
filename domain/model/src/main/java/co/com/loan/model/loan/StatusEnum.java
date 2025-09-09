@@ -7,13 +7,14 @@ import lombok.Getter;
 import reactor.core.publisher.Mono;
 
 /**
- * Enum representing the various statuses in the system.
+ * Enum representing the various statuses in the loan system.
  */
 @Getter
 public enum StatusEnum {
   PENDING(1, "Pendiente de revisión"),
-  REJECTED(2, "Rechazadas"),
-  MANUAL_REVIEW(3, "Revisión manual");
+  APPROVED(2, "Aprobada"),
+  REJECTED(3, "Rechazada"),
+  MANUAL_REVIEW(4, "Revisión manual");
 
   private final int id;
   private final String displayName;

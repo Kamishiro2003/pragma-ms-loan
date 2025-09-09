@@ -85,4 +85,30 @@ public class LoanHandler {
     }
   }
 
+  public Mono<ServerResponse> listenUpdateLoanStatusById(ServerRequest serverRequest) {
+    log.info(
+        "Received request to update loan status by idLoan at path={} method={}",
+        serverRequest.path(), serverRequest.method());
+    String idStatusParam = serverRequest
+        .queryParam("idStatus")
+        .orElseThrow(() -> new ParamRequiredException(ErrorCode.STATUS_IS_REQUIRED));
+    String idLoanParam = serverRequest
+        .queryParam("idLoan")
+        .orElseThrow(() -> new ParamRequiredException(ErrorCode.LOAN_ID_IS_REQUIRED));
+
+    try {
+      int idStatus = Integer.parseInt(idStatusParam);
+
+      return useCase
+          .updateLoanStatusById(idLoanParam, idStatus)
+          .then(ServerResponse
+              .noContent()
+              .build());
+    } catch (NumberFormatException e) {
+      log.error("Invalid parameter format", e);
+      return Mono.error(new InvalidFormatParamException(ErrorCode.STATUS_PARAM_INVALID));
+    }
+
+  }
+
 }

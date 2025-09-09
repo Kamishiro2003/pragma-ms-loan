@@ -1,8 +1,13 @@
 package co.com.loan.usecase.loan;
 
+import static co.com.loan.model.message.MessageEnum.DEFAULT;
+import static co.com.loan.model.message.MessageEnum.DEFAULT_SUBJECT;
+
 import co.com.loan.model.error.ErrorCode;
 import co.com.loan.model.exception.BusinessException;
+import co.com.loan.model.exception.ObjectNotFoundException;
 import co.com.loan.model.gateways.LoanRepository;
+import co.com.loan.model.gateways.MessageBrokerGateway;
 import co.com.loan.model.gateways.TokenGateway;
 import co.com.loan.model.gateways.TransactionGateway;
 import co.com.loan.model.gateways.UserGateway;
@@ -13,6 +18,7 @@ import co.com.loan.model.loan.LoanResponse;
 import co.com.loan.model.loan.MonthlyPayment;
 import co.com.loan.model.loan.StatusEnum;
 import co.com.loan.model.loan.type.LoanType;
+import co.com.loan.model.message.MessageBody;
 import co.com.loan.model.page.PageCommand;
 import co.com.loan.model.page.PageResponse;
 import co.com.loan.model.user.User;
@@ -36,6 +42,7 @@ public class LoanUseCase {
   private final UserGateway userGateway;
   private final TransactionGateway transactionGateway;
   private final TokenGateway tokenGateway;
+  private final MessageBrokerGateway messageBrokerGateway;
 
   /**
    * Creates a loan after validating amount and user email.
@@ -215,6 +222,7 @@ public class LoanUseCase {
       BigDecimal monthlyPayment) {
     return LoanResponse
         .builder()
+        .id(loan.getId())
         .name(user.getName())
         .email(user.getEmail())
         .baseSalary(user.getBaseSalary())
@@ -259,6 +267,53 @@ public class LoanUseCase {
    */
   private Mono<User> getUserByEmail(String email) {
     return Mono.defer(() -> userGateway.getUserByEmail(email));
+  }
+
+  /**
+   * Updates the status of a loan and sends a notification message.
+   * 
+   * @param idLoan the identifier of the loan to update
+   * @param status the new status ID to assign to the loan
+   * @return a Mono that completes when the status is updated and message is sent
+   */
+  public Mono<Void> updateLoanStatusById(String idLoan, int status) {
+    return getLoanById(idLoan)
+        .flatMap(loan -> {
+          loan.setIdStatus(StatusEnum
+              .getStatusEnum(status)
+              .getId());
+          return loanRepository.save(loan);
+        })
+        .flatMap(savedLoan -> {
+          String estado = StatusEnum
+              .getStatusEnum(savedLoan.getIdStatus())
+              .getDisplayName();
+
+          String mensaje = String.format(
+              DEFAULT.getMessage(),
+              savedLoan.getAmount(), estado);
+
+          MessageBody messageBody = MessageBody
+              .builder()
+              .to(savedLoan.getEmail())
+              .subject(DEFAULT_SUBJECT.getMessage())
+              .body(mensaje)
+              .build();
+          return messageBrokerGateway.sendMessage(messageBody);
+        });
+  }
+
+  /**
+   * Retrieves a loan by its identifier.
+   * 
+   * @param id the loan identifier
+   * @return a Mono containing the loan if found
+   * @throws ObjectNotFoundException if the loan is not found
+   */
+  private Mono<Loan> getLoanById(String id) {
+    return Mono.defer(() -> loanRepository
+        .findById(id)
+        .switchIfEmpty(Mono.error(new ObjectNotFoundException(ErrorCode.LOAN_NOT_FOUND, id))));
   }
 }
 

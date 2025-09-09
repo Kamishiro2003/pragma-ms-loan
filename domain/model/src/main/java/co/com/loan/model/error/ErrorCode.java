@@ -13,6 +13,9 @@ public enum ErrorCode {
   STATUS_NOT_FOUND(
       "STATUS-NOT-FOUND", ExceptionCode.NOT_FOUND,
       "No se encontró el estado con id: "),
+  LOAN_NOT_FOUND(
+      "LOAN-NOT-FOUND", ExceptionCode.NOT_FOUND,
+      "No se encontró la solicitud con id: "),
   USER_NOT_FOUND_BY_DOCUMENT_ID(
       "USER-NOT-FOUND-BY-DOCUMENT-ID", ExceptionCode.NOT_FOUND,
       "No se encontró el usuario con documento de identidad: "),
@@ -28,9 +31,16 @@ public enum ErrorCode {
   STATUS_IS_REQUIRED(
       "STATUS-IS-REQUIRED", ExceptionCode.INVALID_INPUT,
       "El estado es requerido como parámetro"),
+  LOAN_ID_IS_REQUIRED(
+      "LOAN-ID-IS-REQUIRED", ExceptionCode.INVALID_INPUT,
+      "El id de la solicitud es requerido como parámetro"),
   FIND_LOANS_BY_STATUS_PARAM_INVALID(
       "FIND-LOANS-BY-STATUS-PARAM-INVALID",
-      ExceptionCode.INVALID_INPUT, "Formato invalido para status, page o size");
+      ExceptionCode.INVALID_INPUT, "Formato invalido para status, page o size"),
+  STATUS_PARAM_INVALID(
+      "STATUS-PARAM-INVALID",
+      ExceptionCode.INVALID_INPUT, "Formato invalido para el estado"),
+  ;
 
   private final String code;
   private final ExceptionCode exceptionCode;

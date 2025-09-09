@@ -14,6 +14,7 @@ import lombok.Setter;
 @Builder(toBuilder = true)
 public class LoanResponse {
 
+  private String id;
   private String name;
   private String email;
   private BigDecimal baseSalary;
